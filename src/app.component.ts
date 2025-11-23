@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, signal, effect, computed, OnInit, ElementRef, ViewChild, WritableSignal, inject, AfterViewInit, AfterViewChecked, OnDestroy, HostListener } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, effect, computed, OnInit, ElementRef, ViewChild, WritableSignal, inject, AfterViewInit, AfterViewChecked, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Note } from './note.model';
@@ -17,7 +17,9 @@ declare var html2pdf: any;
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '(window:keydown)': 'handleKeyboardShortcuts($event)',
-    '(click)': 'onHostClick($event)'
+    '(click)': 'onHostClick($event)',
+    // FIX: Replaced @HostListener with a host binding to resolve signature mismatch and follow best practices.
+    '(window:beforeunload)': 'saveOnExit()'
   }
 })
 export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, OnDestroy {
@@ -42,17 +44,17 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
   
   activeNote = computed(() => {
     const id = this.activeNoteId();
-    return this.notes().find(n => n.id === id) ?? null;
+    return this.notes().find((n: Note) => n.id === id) ?? null;
   });
   
   filteredAndSortedNotes = computed(() => {
     const term = this.searchTerm().toLowerCase();
-    const filtered = this.notes().filter(note => {
+    const filtered = this.notes().filter((note: Note) => {
       const title = note.title.toLowerCase();
       const content = this.stripHtml(note.content).toLowerCase();
       return title.includes(term) || content.includes(term);
     });
-    return filtered.sort((a, b) => {
+    return filtered.sort((a: Note, b: Note) => {
       if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
       return b.updatedAt - a.updatedAt;
     });
@@ -81,6 +83,7 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
   });
   
   constructor() {
+    // FIX: Removed incorrect type for `onCleanup` to match the `effect` function's signature.
     effect((onCleanup) => {
       const notesToSave = this.notes();
       if (!this.quillEditor || !this.activeNote()) return;
@@ -116,7 +119,6 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
     });
   }
   
-  @HostListener('window:beforeunload')
   saveOnExit() {
     clearTimeout(this.debounceSave);
     if(this.notes().length > 0) {
@@ -128,18 +130,18 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
     this.loadLucideScript();
     const notesFromStorage = this.noteService.getNotes();
     
-    const migratedNotes = notesFromStorage.map(note => {
-        const newNote = {...note};
+    const migratedNotes = notesFromStorage.map((note: any) => {
+        const newNote: Note = {...note};
         if (typeof newNote.wordCountGoal === 'undefined') {
             newNote.wordCountGoal = 0;
         }
         if (typeof (note as any).title === 'undefined' || !note.content.includes('<p>')) {
             const lines = note.content.split('\n');
-            const titleLine = lines.find(l => l.startsWith('# '));
+            const titleLine = lines.find((l: string) => l.startsWith('# '));
             const title = titleLine ? titleLine.substring(2).trim() : 'Untitled Note';
             const content = lines
-              .filter(l => !l.startsWith('# '))
-              .map(line => line.trim() === '' ? '<p><br></p>' : `<p>${line}</p>`)
+              .filter((l: string) => !l.startsWith('# '))
+              .map((line: string) => line.trim() === '' ? '<p><br></p>' : `<p>${line}</p>`)
               .join('');
             newNote.title = title;
             newNote.content = content;
@@ -254,11 +256,11 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
   }
   
   toggleSidebar() {
-    this.isSidebarOpen.update(v => !v);
+    this.isSidebarOpen.update((v: boolean) => !v);
   }
   
   toggleTheme() {
-    this.isDarkMode.update(v => !v);
+    this.isDarkMode.update((v: boolean) => !v);
     document.body.classList.toggle('dark');
   }
   
@@ -281,7 +283,7 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
         this.initializeEditor();
       } else if (this.quillEditor) {
         // Load content into existing editor
-        const note = this.notes().find(n => n.id === id);
+        const note = this.notes().find((n: Note) => n.id === id);
         if (note) {
           this.quillEditor.root.innerHTML = note.content;
         }
@@ -299,7 +301,7 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
       updatedAt: Date.now(),
       wordCountGoal: 0,
     };
-    this.notes.update(notes => [newNote, ...notes]);
+    this.notes.update((notes: Note[]) => [newNote, ...notes]);
     this.selectNote(newNote.id);
   }
   
@@ -312,7 +314,7 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
     event.stopPropagation();
     const idToDelete = this.noteToDeleteId();
     if (idToDelete) {
-      this.notes.update(notes => notes.filter(n => n.id !== idToDelete));
+      this.notes.update((notes: Note[]) => notes.filter((n: Note) => n.id !== idToDelete));
       if (this.activeNoteId() === idToDelete) {
         this.activeNoteId.set(this.filteredAndSortedNotes()[0]?.id ?? null);
       }
@@ -328,8 +330,8 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
   updateNoteContent(content: string) {
     const id = this.activeNoteId();
     if (id) {
-      this.notes.update(notes =>
-        notes.map(n =>
+      this.notes.update((notes: Note[]) =>
+        notes.map((n: Note) =>
           n.id === id ? { ...n, content: content, updatedAt: Date.now() } : n
         )
       );
@@ -339,8 +341,8 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
   updateNoteTitle(newTitle: string) {
     const id = this.activeNoteId();
     if (id) {
-      this.notes.update(notes =>
-        notes.map(n => (n.id === id ? { ...n, title: newTitle, updatedAt: Date.now() } : n))
+      this.notes.update((notes: Note[]) =>
+        notes.map((n: Note) => (n.id === id ? { ...n, title: newTitle, updatedAt: Date.now() } : n))
       );
     }
   }
@@ -349,8 +351,8 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
     const id = this.activeNoteId();
     const goalNum = parseInt(goal, 10);
     if (id && !isNaN(goalNum) && goalNum >= 0) {
-        this.notes.update(notes =>
-            notes.map(n => n.id === id ? { ...n, wordCountGoal: goalNum } : n)
+        this.notes.update((notes: Note[]) =>
+            notes.map((n: Note) => n.id === id ? { ...n, wordCountGoal: goalNum } : n)
         );
     }
   }
@@ -371,8 +373,8 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
   
   togglePin(event: MouseEvent, id: string) {
     event.stopPropagation();
-    this.notes.update(notes =>
-      notes.map(n =>
+    this.notes.update((notes: Note[]) =>
+      notes.map((n: Note) =>
         n.id === id ? { ...n, isPinned: !n.isPinned, updatedAt: Date.now() } : n
       )
     );
@@ -452,7 +454,7 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
         updatedAt: Date.now(),
         wordCountGoal: 0,
       };
-      this.notes.update(notes => [newNote, ...notes]);
+      this.notes.update((notes: Note[]) => [newNote, ...notes]);
       this.selectNote(newNote.id);
     };
     reader.onerror = () => {
