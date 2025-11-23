@@ -3,7 +3,7 @@
 </div>
 
 
-###CONTACT INFORMATION IS NOT ACTIVE
+### CONTACT INFORMATION IS NOT ACTIVE
 
 # 🚀 Zen Notes - Premium Note-Taking Application
 
