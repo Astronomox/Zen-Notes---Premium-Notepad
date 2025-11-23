@@ -194,6 +194,15 @@
 </head>
 <body class="dark bg-slate-900 font-sans antialiased h-screen">
   <app-root></app-root>
-  <script type="module" src="index.js"></script>
+  <script type="module">
+    import '@angular/compiler';
+    import { bootstrapApplication } from '@angular/platform-browser';
+    import { provideZonelessChangeDetection } from '@angular/core';
+    import { AppComponent } from './src/app.component.js';
+
+    bootstrapApplication(AppComponent, {
+      providers: [provideZonelessChangeDetection()],
+    }).catch((err) => console.error(err));
+  </script>
 </body>
 </html>

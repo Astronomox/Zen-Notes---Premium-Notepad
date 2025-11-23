@@ -1,12 +1,11 @@
 {
-  "name": "zen-notes---premium-notepad",
-  "version": "0.0.0",
+  "name": "zen-notes-premium-notepad",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "build": "tsc && cp index.html metadata.json dist/ && mkdir -p dist/src && cp src/app.component.html dist/src/"
   },
   "devDependencies": {
-    "@angular/build": "^21.0.0",
     "typescript": "^5.9.2",
     "@angular/common": "^21.0.0",
     "@angular/compiler": "^21.0.0",

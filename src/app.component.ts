@@ -1,8 +1,8 @@
 import { Component, ChangeDetectionStrategy, signal, effect, computed, OnInit, ElementRef, ViewChild, WritableSignal, inject, AfterViewInit, AfterViewChecked, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Note } from './note.model';
-import { NoteService } from './note.service';
+import { Note } from './note.model.js';
+import { NoteService } from './note.service.js';
 
 declare var Quill: any;
 declare var lucide: any;
