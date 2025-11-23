@@ -12,9 +12,8 @@
     "skipLibCheck": true,
     "noImplicitAny": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "jsx": "preserve"
+    "allowSyntheticDefaultImports": true
   },
-  "include": ["index.tsx", "src/**/*.ts"],
+  "include": ["index.ts", "src/**/*.ts"],
   "exclude": ["node_modules"]
 }

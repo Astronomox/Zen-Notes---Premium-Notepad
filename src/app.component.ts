@@ -18,7 +18,6 @@ declare var html2pdf: any;
   host: {
     '(window:keydown)': 'handleKeyboardShortcuts($event)',
     '(click)': 'onHostClick($event)',
-    // FIX: Replaced @HostListener with a host binding to resolve signature mismatch and follow best practices.
     '(window:beforeunload)': 'saveOnExit()'
   }
 })
@@ -83,8 +82,7 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
   });
   
   constructor() {
-    // FIX: Removed incorrect type for `onCleanup` to match the `effect` function's signature.
-    effect((onCleanup) => {
+    effect((onCleanup: (cleanup: () => void) => void) => {
       const notesToSave = this.notes();
       if (!this.quillEditor || !this.activeNote()) return;
       
@@ -119,14 +117,14 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
     });
   }
   
-  saveOnExit() {
+  saveOnExit(): void {
     clearTimeout(this.debounceSave);
     if(this.notes().length > 0) {
       this.noteService.saveNotes(this.notes());
     }
   }
   
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadLucideScript();
     const notesFromStorage = this.noteService.getNotes();
     
@@ -156,11 +154,11 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
     this.isSidebarOpen.set(window.innerWidth >= 1024);
   }
   
-  ngAfterViewInit() {
+  ngAfterViewInit(): void {
     // Editor will be initialized when a note is selected
   }
   
-  private initializeEditor() {
+  private initializeEditor(): void {
     if (this.editorInitialized) return;
     
     setTimeout(() => {
@@ -226,18 +224,18 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
     }, 150);
   }
   
-  ngAfterViewChecked() {
+  ngAfterViewChecked(): void {
     if (this.iconsLoaded && typeof lucide !== 'undefined') {
       lucide.createIcons();
     }
   }
   
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.saveOnExit();
     clearTimeout(this.toastTimeout);
   }
   
-  private loadLucideScript() {
+  private loadLucideScript(): void {
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js';
     script.onload = () => {
@@ -255,22 +253,22 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
     return doc.body.textContent || "";
   }
   
-  toggleSidebar() {
+  toggleSidebar(): void {
     this.isSidebarOpen.update((v: boolean) => !v);
   }
   
-  toggleTheme() {
+  toggleTheme(): void {
     this.isDarkMode.update((v: boolean) => !v);
     document.body.classList.toggle('dark');
   }
   
-  onHostClick(event: MouseEvent) {
+  onHostClick(event: MouseEvent): void {
     if (this.noteToDeleteId() && !(event.target as HTMLElement).closest('.delete-confirm-dialog, .delete-btn')) {
       this.noteToDeleteId.set(null);
     }
   }
   
-  selectNote(id: string | null) {
+  selectNote(id: string | null): void {
     if (id) {
       this.activeNoteId.set(id);
       this.noteToDeleteId.set(null);
@@ -291,7 +289,7 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
     }
   }
   
-  newNote() {
+  newNote(): void {
     const newNote: Note = {
       id: crypto.randomUUID(),
       title: 'New Note',
@@ -305,12 +303,12 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
     this.selectNote(newNote.id);
   }
   
-  startDelete(event: MouseEvent, id: string) {
+  startDelete(event: MouseEvent, id: string): void {
     event.stopPropagation();
     this.noteToDeleteId.set(id);
   }
   
-  confirmDelete(event: MouseEvent) {
+  confirmDelete(event: MouseEvent): void {
     event.stopPropagation();
     const idToDelete = this.noteToDeleteId();
     if (idToDelete) {
@@ -322,12 +320,12 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
     this.noteToDeleteId.set(null);
   }
   
-  cancelDelete(event: MouseEvent) {
+  cancelDelete(event: MouseEvent): void {
     event.stopPropagation();
     this.noteToDeleteId.set(null);
   }
   
-  updateNoteContent(content: string) {
+  updateNoteContent(content: string): void {
     const id = this.activeNoteId();
     if (id) {
       this.notes.update((notes: Note[]) =>
@@ -338,7 +336,7 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
     }
   }
   
-  updateNoteTitle(newTitle: string) {
+  updateNoteTitle(newTitle: string): void {
     const id = this.activeNoteId();
     if (id) {
       this.notes.update((notes: Note[]) =>
@@ -347,7 +345,7 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
     }
   }
 
-  updateWordCountGoal(goal: string) {
+  updateWordCountGoal(goal: string): void {
     const id = this.activeNoteId();
     const goalNum = parseInt(goal, 10);
     if (id && !isNaN(goalNum) && goalNum >= 0) {
@@ -357,7 +355,7 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
     }
   }
   
-  showToast(message: string) {
+  showToast(message: string): void {
     this.toastMessage.set(message);
     clearTimeout(this.toastTimeout);
     this.toastTimeout = setTimeout(() => {
@@ -365,13 +363,13 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
     }, 3000);
   }
   
-  forceSave() {
+  forceSave(): void {
     clearTimeout(this.debounceSave);
     this.noteService.saveNotes(this.notes());
     this.showToast('Note Saved! ✓');
   }
   
-  togglePin(event: MouseEvent, id: string) {
+  togglePin(event: MouseEvent, id: string): void {
     event.stopPropagation();
     this.notes.update((notes: Note[]) =>
       notes.map((n: Note) =>
@@ -395,7 +393,7 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
     }).format(new Date(timestamp));
   }
   
-  async exportNote(format: 'docx' | 'pdf') {
+  async exportNote(format: 'docx' | 'pdf'): Promise<void> {
     const note = this.activeNote();
     if (!note) return;
     
@@ -433,16 +431,16 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
     }
   }
   
-  triggerImport() {
+  triggerImport(): void {
     this.fileInput?.nativeElement.click();
   }
   
-  importNote(event: Event) {
+  importNote(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
     
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = (e: ProgressEvent<FileReader>) => {
       const content = e.target?.result as string;
       const title = file.name.replace(/\.(txt|html|md)$/i, '');
       const newNote: Note = {
@@ -464,7 +462,7 @@ export class AppComponent implements OnInit, AfterViewInit, AfterViewChecked, On
     (event.target as HTMLInputElement).value = '';
   }
   
-  handleKeyboardShortcuts(event: KeyboardEvent) {
+  handleKeyboardShortcuts(event: KeyboardEvent): void {
     if (event.ctrlKey || event.metaKey) {
       switch (event.key) {
         case 'n':
