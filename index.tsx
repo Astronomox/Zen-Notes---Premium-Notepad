@@ -8,6 +8,6 @@ bootstrapApplication(AppComponent, {
   providers: [
     provideZonelessChangeDetection(),
   ],
-}).catch(err => console.error(err));
+}).catch((err: any) => console.error(err));
 
 // AI Studio always uses an `index.tsx` file for all project types.
