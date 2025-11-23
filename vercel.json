@@ -1,12 +1,5 @@
 {
-  "version": 2,
-  "buildCommand": "npm run vercel-build",
-  "outputDirectory": "dist/zen-notes-premium-notepad/browser",
-  "framework": "angular",
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ]
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install --legacy-peer-deps"
 }
