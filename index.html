@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zen Notes</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Quill Rich Text Editor -->
+  <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+  <!-- Export Libraries -->
+  <script src="https://unpkg.com/html-to-docx@1.8.0/dist/html-to-docx.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- Lucide Icons will be loaded dynamically by the component -->
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Robust custom scrollbar for a more polished look */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background-color: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background-color: #a0aec0; /* slate-400 */
+      border-radius: 4px;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background-color: #4a5568; /* slate-600 */
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background-color: #718096; /* slate-500 */
+    }
+    .dark ::-webkit-scrollbar-thumb:hover {
+      background-color: #a0aec0; /* slate-400 */
+    }
+    /* Quill Editor styles */
+    .page-container .ql-editor {
+      min-height: 400px;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+    .dark .page-container .ql-editor {
+      color: #e2e8f0; /* slate-200 */
+      background-color: transparent;
+    }
+    .dark .ql-editor.ql-blank::before {
+      color: #64748b; /* slate-500 */
+    }
+    .page-container .ql-container.ql-snow {
+      border: none;
+    }
+    .dark .ql-snow .ql-stroke, .dark .ql-snow .ql-fill {
+      stroke: #cbd5e1;
+    }
+    .dark .ql-snow .ql-picker-label {
+      color: #cbd5e1;
+    }
+    .dark .ql-snow .ql-picker-options {
+      background-color: #1e293b; /* slate-800 */
+      border-color: #334155 !important;
+    }
+    /* Custom Toolbar Styles */
+    #editor-toolbar {
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .dark #editor-toolbar {
+      border-bottom: 1px solid #334155;
+    }
+    #editor-toolbar button, #editor-toolbar .ql-picker {
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+    }
+    #editor-toolbar button:not(.save-btn):hover, #editor-toolbar .ql-picker:hover {
+      background-color: #f1f5f9;
+    }
+    .dark #editor-toolbar button:not(.save-btn):hover, .dark #editor-toolbar .ql-picker:hover {
+      background-color: #334155;
+    }
+    #editor-toolbar button.ql-active, #editor-toolbar .ql-picker.ql-active {
+      background-color: #e0e7ff;
+      color: #4f46e5;
+    }
+    .dark #editor-toolbar button.ql-active, .dark #editor-toolbar .ql-picker.ql-active {
+      background-color: #312e81;
+      color: #a5b4fc;
+    }
+    #editor-toolbar button:not(.save-btn) {
+       width: 28px;
+    }
+    #editor-toolbar button svg, #editor-toolbar .ql-picker-label svg {
+      width: 18px;
+      height: 18px;
+    }
+    #editor-toolbar .ql-picker-label {
+      padding: 0 4px;
+    }
+    #editor-toolbar .ql-picker.ql-font .ql-picker-label[data-value=serif]::before { font-family: "Times New Roman", serif; }
+    #editor-toolbar .ql-picker.ql-font .ql-picker-label[data-value=monospace]::before { font-family: "Courier New", monospace; }
+    #editor-toolbar .ql-picker.ql-size .ql-picker-label[data-value=small]::before { font-size: 10px; }
+    #editor-toolbar .ql-picker.ql-size .ql-picker-label[data-value=large]::before { font-size: 18px; }
+    #editor-toolbar .ql-picker.ql-size .ql-picker-label[data-value=huge]::before { font-size: 32px; }
+
+    /* Code Block Styles */
+    .ql-editor .ql-syntax {
+        background-color: #f1f5f9;
+        color: #1e293b;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        white-space: pre-wrap;
+        margin-bottom: 1rem;
+        font-family: monospace;
+    }
+    .dark .ql-editor .ql-syntax {
+        background-color: #1e293b;
+        color: #e2e8f0;
+    }
+    /* Ensure app-root takes full height */
+    app-root {
+      display: block;
+      height: 100%;
+    }
+
+    /* Toast Animation */
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateY(-20px); }
+      10% { opacity: 1; transform: translateY(0); }
+      90% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-20px); }
+    }
+    .animate-fade-in-out {
+      animation: fadeInOut 3s ease-in-out forwards;
+    }
+    /* Progress Bar */
+    progress {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      border: none;
+      height: 6px;
+      border-radius: 3px;
+    }
+    progress::-webkit-progress-bar {
+      background-color: #e2e8f0;
+      border-radius: 3px;
+    }
+    .dark progress::-webkit-progress-bar {
+      background-color: #334155;
+    }
+    progress::-webkit-progress-value {
+      background-color: #4ade80; /* green-400 */
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+  </style>
+<script type="importmap">
+{
+  "imports": {
+    "rxjs": "https://aistudiocdn.com/rxjs@^7.8.2?conditions=es2015",
+    "rxjs/operators": "https://aistudiocdn.com/rxjs@^7.8.2/operators?conditions=es2015",
+    "rxjs/ajax": "https://aistudiocdn.com/rxjs@^7.8.2/ajax?conditions=es2015",
+    "rxjs/webSocket": "https://aistudiocdn.com/rxjs@^7.8.2/webSocket?conditions=es2015",
+    "rxjs/testing": "https://aistudiocdn.com/rxjs@^7.8.2/testing?conditions=es2015",
+    "rxjs/fetch": "https://aistudiocdn.com/rxjs@^7.8.2/fetch?conditions=es2015",
+    "@angular/compiler": "https://next.esm.sh/@angular/compiler@^21.0.0?external=rxjs",
+    "@angular/platform-browser": "https://next.esm.sh/@angular/platform-browser@^21.0.0?external=rxjs",
+    "@angular/core": "https://next.esm.sh/@angular/core@^21.0.0?external=rxjs",
+    "@angular/forms": "https://next.esm.sh/@angular/forms@^21.0.0?external=rxjs",
+    "@angular/common": "https://next.esm.sh/@angular/common@^21.0.0?external=rxjs"
+  }
+}
+</script>
+</head>
+<body class="dark bg-slate-900 font-sans antialiased h-screen">
+  <app-root></app-root>
+</body>
+</html>

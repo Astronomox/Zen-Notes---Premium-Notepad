@@ -1,0 +1,5 @@
+{
+  "name": "Zen Notes - Premium Notepad",
+  "description": "A feature-rich, premium notepad application with a clean, modern interface. It offers auto-saving, rich text formatting via Markdown, note management, themes, and export options, all stored locally in your browser.",
+  "requestFramePermissions": []
+}
