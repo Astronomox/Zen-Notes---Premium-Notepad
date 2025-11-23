@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "echo 'Skipping build for static deployment.'"
+    "build": "mkdir dist && cp index.html index.tsx metadata.json dist/ && cp -r src dist/"
   },
   "devDependencies": {
     "@angular/build": "^21.0.0",
